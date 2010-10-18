@@ -12,8 +12,8 @@
         <provides>image</provides>
   </extension>
   <extension point="xbmc.addon.metadata">
-    <summary>Plugin browse picasa albums and imagaes</summary>
-    <description>Plugin browse picasa albums and imagaes</description>
-	<platform>all</platform>
+    <summary>Plugin to browse picasa albums and photos</summary>
+    <description>Browse your picasa albums and tags. Browse your favorite user's albums, tags, and their favorite users. Search your photos, your contact's photos, and search Picasa. View maps of photos with geo location data.</description>
+    <platform>all</platform>
   </extension>
 </addon>
