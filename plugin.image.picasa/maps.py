@@ -97,7 +97,7 @@ def clearDirFiles(filepath):
 		f = os.path.join(filepath,f)
 		if os.path.isfile(f): os.remove(f)
 
-CACHE_PATH = xbmc.translatePath('special://profile/addon_data/%s/cache/' % (sys.argv[1]))
+CACHE_PATH = xbmc.translatePath('special://profile/addon_data/%s/maps/' % (sys.argv[1]))
 if not os.path.exists(CACHE_PATH): os.makedirs(CACHE_PATH)
 		
 Maps().doMap()

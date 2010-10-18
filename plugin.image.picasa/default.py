@@ -5,13 +5,16 @@ from addon import AddonHelper
 __plugin__ =  'picasa'
 __author__ = 'ruuk'
 __url__ = 'http://code.google.com/p/picasaphotos-xbmc/'
-__date__ = '10-12-2010'
-__version__ = '0.7.9'
+__date__ = '10-18-2010'
+__version__ = '0.8.0'
 		
 class picasaPhotosSession(AddonHelper):
 	def __init__(self):
 		AddonHelper.__init__(self,'plugin.image.picasa')
 		self._api = None
+		
+		cache_path = self.dataPath('cache')
+		if not os.path.exists(cache_path): os.makedirs(cache_path)
 		
 		mpp = self.getSettingInt('max_per_page')
 		self.max_per_page = [10,20,30,40,50,75,100,200,500,1000][mpp]
@@ -85,9 +88,7 @@ class picasaPhotosSession(AddonHelper):
 				self.xbmcgui().Dialog().ok(self.lang(30302),self.lang(30302),self.lang(30303))
 			return False
 			
-		cache_path = self.dataPath('cache')
 		token_path = self.dataPath('token')
-		if not os.path.exists(cache_path): os.makedirs(cache_path)
 		f = open(token_path,'w')
 		f.write(token)
 		f.close()
@@ -224,7 +225,10 @@ class picasaPhotosSession(AddonHelper):
 		contacts = self.api().GetFeed('/data/feed/api/user/%s/contacts?kind=user' % (user))
 		tot = int(contacts.total_results.text)
 		for c in contacts.entry:
-			tn = c.thumbnail.text
+			tn = self.dataPath('cache/' + c.user.text + '.jpg')
+			if not os.path.exists(tn):
+				tn = self.getFile(c.thumbnail.text,tn)
+			#tn = c.thumbnail.text
 			#tn = tn.replace('s64-c','s256-c').replace('?sz=64','?sz=256')
 			if not self.addDir(c.nickname.text,tn,tot,url=c.user.text,mode=103,name=c.nickname.text): break
 			
