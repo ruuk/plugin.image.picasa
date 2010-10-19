@@ -13,8 +13,11 @@
         <provides>image</provides>
   </extension>
   <extension point="xbmc.addon.metadata">
-    <summary>Plugin to browse picasa albums and photos</summary>
-    <description>Browse your picasa albums and tags. Browse your favorite user's albums, tags, and their favorite users. Search your photos, your contact's photos, and search Picasa. View maps of photos with geo location data.</description>
+    <summary lang="en">Plugin to browse picasa albums and photos</summary>
+    <summary lang="nl">Blader door uw Picasa albums en afbeeldingen van u zelf of uw vrienden.</summary>
+
+    <description lang="en">Browse your picasa albums and tags. Browse your favorite user's albums, tags, and their favorite users. Search your photos, your contact's photos, and search Picasa. View maps of photos with geo location data.</description>
+    <description lang="nl">Blader door uw Picasa albums en afbeeldingen van u zelf of uw vrienden.</description>
     <platform>all</platform>
   </extension>
 </addon>
