@@ -5,7 +5,8 @@
        provider-name="Rick Phillips (ruuk)">
   <requires>
     <import addon="xbmc.python" version="1.0"/>
-   </requires>
+    <import addon="script.module.elementtree" version="1.2.7"/>
+  </requires>
 
   <extension point="xbmc.python.pluginsource"
             library="default.py">
