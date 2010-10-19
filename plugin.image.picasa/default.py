@@ -5,8 +5,8 @@ from addon import AddonHelper
 __plugin__ =  'picasa'
 __author__ = 'ruuk'
 __url__ = 'http://code.google.com/p/picasaphotos-xbmc/'
-__date__ = '10-18-2010'
-__version__ = '0.8.0'
+__date__ = '10-19-2010'
+__version__ = '0.8.1'
 		
 class picasaPhotosSession(AddonHelper):
 	def __init__(self):
