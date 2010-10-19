@@ -1,6 +1,10 @@
 picasaPhotos Changelog
 
-Current Version : 0.8.1
+Current Version : 0.8.2
+
+*** 0.8.2 ***
+
+Fixed bug when fetching contacts images
 
 *** 0.8.1 ***
 
