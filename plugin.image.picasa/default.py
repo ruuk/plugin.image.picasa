@@ -6,12 +6,18 @@ __plugin__ =  'picasa'
 __author__ = 'ruuk'
 __url__ = 'http://code.google.com/p/picasaphotos-xbmc/'
 __date__ = '10-19-2010'
-__version__ = '0.8.2'
-		
+__version__ = '0.8.3'
+
+#protected = private
+#private = anyone with link
+#public = public
+
 class picasaPhotosSession(AddonHelper):
 	def __init__(self):
 		AddonHelper.__init__(self,'plugin.image.picasa')
 		self._api = None
+		self.pfilter = None
+		self.privacy_levels = ['public','private','protected']
 		
 		cache_path = self.dataPath('cache')
 		if not os.path.exists(cache_path): os.makedirs(cache_path)
@@ -147,6 +153,13 @@ class picasaPhotosSession(AddonHelper):
 			self.CONTACT(url,name)
 		return True
 	
+	def filterAllows(self,privacy):
+		if not self.pfilter: self.pfilter = self.getSettingInt('privacy_filter')
+		if not privacy in self.privacy_levels: return False
+		level = self.privacy_levels.index(privacy)
+		if level <= self.pfilter: return True
+		return False
+		
 	def getSearchTerms(self):
 		keyboard = self.xbmc().Keyboard('',self.lang(30404))
 		keyboard.doModal()
@@ -175,6 +188,7 @@ class picasaPhotosSession(AddonHelper):
 		mparams = self.getMapParams()
 		
 		for p in photos.entry:
+			if not self.filterAllows(p.extension_elements[0].text): continue
 			contextMenu = None
 			lat_lon = p.geo.Point.pos.text
 			if lat_lon:
@@ -212,6 +226,7 @@ class picasaPhotosSession(AddonHelper):
 		#albums = self.api().GetUserFeed(user=user)
 		tot = int(albums.total_results.text)
 		for album in albums.entry:
+			if not self.filterAllows(album.access.text): continue
 			title = album.title.text + ' (' + album.numphotos.text + ')'
 			if not self.addDir(title,album.media.thumbnail[0].url,tot,url=album.gphoto_id.text,mode=101,user=user): break
 			
