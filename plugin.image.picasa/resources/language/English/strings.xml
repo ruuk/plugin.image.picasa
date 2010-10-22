@@ -36,4 +36,8 @@
     
     <string id="30404">Enter Search Terms</string>
     <string id="30405">Show Map</string>
+    <string id="30406">Set view as default for %s</string><!-- %s must remain in translation but can be moved -->
+    <string id="30407">Photos</string>
+    <string id="30408">User</string>
+    
 </strings>
