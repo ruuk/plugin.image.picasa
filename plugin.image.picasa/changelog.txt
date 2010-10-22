@@ -1,6 +1,10 @@
 picasaPhotos Changelog
 
-Current Version : 0.8.3
+Current Version : 0.8.4
+
+*** 0.8.4 ***
+
+Added the ability to set view defaults from context menu
 
 *** 0.8.3 ***
 

@@ -5,8 +5,8 @@ from addon import AddonHelper
 __plugin__ =  'picasa'
 __author__ = 'ruuk'
 __url__ = 'http://code.google.com/p/picasaphotos-xbmc/'
-__date__ = '10-19-2010'
-__version__ = '0.8.3'
+__date__ = '10-22-2010'
+__version__ = '0.8.4'
 
 #xbmc.executebuiltin("Container.SetViewMode(500)")
 
