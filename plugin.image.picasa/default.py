@@ -6,7 +6,7 @@ __plugin__ =  'picasa'
 __author__ = 'ruuk'
 __url__ = 'http://code.google.com/p/picasaphotos-xbmc/'
 __date__ = '10-22-2010'
-__version__ = '0.8.4'
+__version__ = '0.8.5'
 
 #xbmc.executebuiltin("Container.SetViewMode(500)")
 
