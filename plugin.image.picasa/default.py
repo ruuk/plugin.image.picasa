@@ -134,7 +134,7 @@ class picasaPhotosSession(AddonHelper):
 			success = self.process(mode,url,name,user,terms)
 			#print 'NO_LOGIN ' + str(mode)
 		except: #TODO more discriminating except clause
-			print 'FACEBOOKPHOTOS: LOGIN ' + str(mode)
+			print 'PHOTOS: LOGIN ' + str(mode)
 			if not self.login(): return False #only login if we have to
 			success = self.process(mode,url,name,user,terms)
 		return success
