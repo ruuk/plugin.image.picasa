@@ -5,7 +5,7 @@ from addon import AddonHelper
 __plugin__ =  'picasa'
 __author__ = 'ruuk'
 __url__ = 'http://code.google.com/p/picasaphotos-xbmc/'
-__date__ = '10-22-2010'
+__date__ = '10-25-2010'
 __version__ = '0.8.5'
 
 #xbmc.executebuiltin("Container.SetViewMode(500)")
@@ -26,6 +26,11 @@ class picasaPhotosSession(AddonHelper):
 		self.pfilter = None
 		self.privacy_levels = ['public','private','protected']
 		
+		if self.getSetting('use_login') == 'true':
+			self.user = 'default'
+		else:
+			self.user = self.getSetting('login_email').split('@')[0]
+		
 		cache_path = self.dataPath('cache')
 		if not os.path.exists(cache_path): os.makedirs(cache_path)
 		
@@ -38,7 +43,7 @@ class picasaPhotosSession(AddonHelper):
 		success = self.go(	self.getParamInt('mode',None),
 							self.getParamString('url',None),
 							self.getParamString('name',None),
-							self.getParamString('user','default',no_unquote=True))
+							self.getParamString('user',self.user,no_unquote=True))
 		
 		if self.getParamInt('start_index',None): update_dir = True
 		self.endOfDirectory(succeeded=success,updateListing=update_dir,cacheToDisc=cache)
@@ -134,8 +139,9 @@ class picasaPhotosSession(AddonHelper):
 			success = self.process(mode,url,name,user,terms)
 			#print 'NO_LOGIN ' + str(mode)
 		except: #TODO more discriminating except clause
-			print 'PHOTOS: LOGIN ' + str(mode)
-			if not self.login(): return False #only login if we have to
+			if self.user == 'default':
+				print 'PHOTOS: LOGIN ' + str(mode)
+				if not self.login(): return False #only login if we have to
 			success = self.process(mode,url,name,user,terms)
 		return success
 				
@@ -185,7 +191,7 @@ class picasaPhotosSession(AddonHelper):
 		total = int(photos.total_results.text)
 		start = int(photos.start_index.text)
 		per_page = int(photos.items_per_page.text)
-		url = self.getParamString('url','default')
+		url = self.getParamString('url',self.user)
 		
 		## Previous Page ------------------------#
 		if start > 1:
@@ -229,10 +235,10 @@ class picasaPhotosSession(AddonHelper):
 		if mode: self.xbmc().executebuiltin("Container.SetViewMode(%s)" % mode)
 		
 	def CATEGORIES(self):
-		self.addDir(self.lang(30100),url='default',mode=1,_thumbnail=self.addonPath('resources/images/albums.png'))
-		self.addDir(self.lang(30101),url='default',mode=2,_thumbnail=self.addonPath('resources/images/tags.png'))
-		self.addDir(self.lang(30102),url='default',mode=3,_thumbnail=self.addonPath('resources/images/contacts.png'))
-		self.addDir(self.lang(30103),url='default',mode=4,_thumbnail=self.addonPath('resources/images/search.png'))
+		if self.user: self.addDir(self.lang(30100),url=self.user,mode=1,_thumbnail=self.addonPath('resources/images/albums.png'))
+		if self.user: self.addDir(self.lang(30101),url=self.user,mode=2,_thumbnail=self.addonPath('resources/images/tags.png'))
+		if self.user: self.addDir(self.lang(30102),url=self.user,mode=3,_thumbnail=self.addonPath('resources/images/contacts.png'))
+		if self.user: self.addDir(self.lang(30103),url=self.user,mode=4,_thumbnail=self.addonPath('resources/images/search.png'))
 		self.addDir(self.lang(30104),url='default',mode=5,_thumbnail=self.addonPath('resources/images/search_picasa.png'))
 		
 	def ALBUMS(self,user='default'):

@@ -45,13 +45,11 @@ import base64
 import atom.http_core
 ssl_imported = False
 ssl = None
-
-#NOTE FIX FOR picasaPhotosXBMC
-#try:
-#  import ssl
-#  ssl_imported = True
-#except ImportError:
-#  pass
+try:
+  import ssl
+  ssl_imported = True
+except ImportError:
+  pass
   
 
 

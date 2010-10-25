@@ -4,7 +4,7 @@ Current Version : 0.8.5
 
 *** 0.8.5 ***
 
-Fixed SSL bug
+Added 'Use Login' setting to enable/disable logins (Allows just browsing public photos and works around Windows SSL bug)
 
 *** 0.8.4 ***
 
