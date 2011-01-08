@@ -14,25 +14,25 @@ class AddonHelper:
 		
 	def xbmc(self):
 		if self._xbmc: return self._xbmc
-		import xbmc
+		import xbmc #@UnresolvedImport
 		self._xbmc = xbmc
 		return xbmc
 		
 	def xbmcgui(self):
 		if self._xbmcgui: return self._xbmcgui
-		import xbmcgui
+		import xbmcgui #@UnresolvedImport
 		self._xbmcgui = xbmcgui
 		return xbmcgui
 		
 	def xbmcplugin(self):
 		if self._xbmcplugin: return self._xbmcplugin
-		import xbmcplugin
+		import xbmcplugin #@UnresolvedImport
 		self._xbmcplugin = xbmcplugin
 		return xbmcplugin
 		
 	def xbmcaddon(self):
 		if self._xbmcaddon: return self._xbmcaddon
-		import xbmcaddon
+		import xbmcaddon #@UnresolvedImport
 		self._xbmcaddon = xbmcaddon
 		return xbmcaddon
 		

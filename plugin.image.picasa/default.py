@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import urllib, os
+import os, sys
 from addon import AddonHelper
 
 __plugin__ =  'picasa'
@@ -72,10 +72,10 @@ class picasaPhotosSession(AddonHelper):
 		fail = ''
 		try:
 			self.api().ProgrammaticLogin()
-		except CaptchaRequired,e:
+		except CaptchaRequired,e: #@UnusedVariable
 			login = False
 			fail = 'captcha'
-		except BadAuthentication,e:
+		except BadAuthentication,e: #@UnusedVariable
 				fail = 'badauth'
 			
 		ct=0
@@ -89,10 +89,10 @@ class picasaPhotosSession(AddonHelper):
 				print response,ctoken
 				self.api().ProgrammaticLogin(ctoken,response)
 				break
-			except CaptchaRequired,e:
+			except CaptchaRequired,e: #@UnusedVariable
 				fail = 'captcha'
 				print 'CAPTCHA FAIL'
-			except BadAuthentication,e:
+			except BadAuthentication,e: #@UnusedVariable
 				fail = 'badauth'
 				print 'BAD AUTHENTICATION'
 			if ct > 2: break
@@ -321,7 +321,7 @@ class picasaPhotosSession(AddonHelper):
 		uri = '/data/feed/api/user/%s?kind=photo&tag=%s' % (user, tag.lower())
 		photos = self.api().GetFeed(uri,limit=self.max_per_page,start_index=start)
 		self.addPhotos(photos,mode=102,user=user)
-  
+
 	def ALBUM(self,aid,user='default'):
 		start = self.getParamInt('start_index',1)
 		uri = '/data/feed/api/user/%s/albumid/%s?kind=photo' % (user,aid)
@@ -329,7 +329,7 @@ class picasaPhotosSession(AddonHelper):
 		self.addPhotos(photos,mode=101,user=user)
 		
 def setViewDefault():
-	import xbmc
+	import xbmc #@UnresolvedImport
 	setting = sys.argv[2]
 	view_mode = ""
 	print "test"
@@ -343,7 +343,7 @@ def setViewDefault():
 	if not view_mode: return
 	print "ViewMode: " + view_mode
 	AddonHelper('plugin.image.picasa').setSetting(setting,view_mode)
-      
+
 if sys.argv[1] == 'viewmode':
 	setViewDefault()
 else:
