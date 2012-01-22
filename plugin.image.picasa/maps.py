@@ -1,4 +1,4 @@
-import urllib, os, time
+import xbmc, urllib, os, time, sys #@UnresolvedImport
 class Maps:
 	def __init__(self):
 		self.setMapSource()
@@ -13,7 +13,7 @@ class Maps:
 	def setMapSource(self,source='google'):
 		self.map_source = source
 		if self.map_source == 'yahoo':
-			import elementtree.ElementTree as et
+			import elementtree.ElementTree as et #@UnresolvedImport
 			self.ET = et
 		#self.zoom =  {	'country':int(__settings__.getSetting('country_zoom')),
 		#				'region':int(__settings__.getSetting('region_zoom')),
@@ -66,7 +66,6 @@ class Maps:
 		return str(zoom)
 		
 	def doMap(self):
-		import xbmc
 		clearDirFiles(CACHE_PATH)
 		params = self.getParams()
 		self.setMapSource(params.get('source','google'))

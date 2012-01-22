@@ -5,8 +5,8 @@ from addon import AddonHelper
 __plugin__ =  'picasa'
 __author__ = 'ruuk'
 __url__ = 'http://code.google.com/p/picasaphotos-xbmc/'
-__date__ = '10-25-2010'
-__version__ = '0.8.5'
+__date__ = '01-22-2012'
+__version__ = '0.8.6'
 
 #xbmc.executebuiltin("Container.SetViewMode(500)")
 
@@ -218,16 +218,16 @@ class picasaPhotosSession(AddonHelper):
 		
 		if end_of_page >= total: return
 		
-		next = '('+str(end_of_page)+'/'+str(total)+') '
+		next_ = '('+str(end_of_page)+'/'+str(total)+') '
 		
 		maybe_left = total - end_of_page
 		if maybe_left <= per_page:
-			next += self.lang(30403).replace('@REPLACE@',str(maybe_left))
+			next_ += self.lang(30403).replace('@REPLACE@',str(maybe_left))
 		else:
-			next += self.lang(30402).replace('@REPLACE@',str(per_page))
+			next_ += self.lang(30402).replace('@REPLACE@',str(per_page))
 		
 		next_index = start + per_page
-		self.addDir(next+' ->',self.addonPath('resources/images/next.png'),url=url,mode=mode,start_index=next_index,**kwargs)
+		self.addDir(next_+' ->',self.addonPath('resources/images/next.png'),url=url,mode=mode,start_index=next_index,**kwargs)
 		##---------------------------------------#
 		
 	def setViewMode(self,setting):
@@ -333,10 +333,10 @@ def setViewDefault():
 	setting = sys.argv[2]
 	view_mode = ""
 	print "test"
-	for id in range( 50, 59 ) + range(500,600):
+	for ID in range( 50, 59 ) + range(500,600):
 		try:
-			if xbmc.getCondVisibility( "Control.IsVisible(%i)" % id ):
-				view_mode = repr( id )
+			if xbmc.getCondVisibility( "Control.IsVisible(%i)" % ID ):
+				view_mode = repr( ID )
 				break
 		except:
 			pass

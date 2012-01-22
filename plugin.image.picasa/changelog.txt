@@ -1,6 +1,10 @@
 picasaPhotos Changelog
 
-Current Version : 0.8.5
+Current Version : 0.8.6
+
+*** 0.8.5 ***
+
+Changes for Eden
 
 *** 0.8.5 ***
 
