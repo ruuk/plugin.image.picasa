@@ -113,7 +113,8 @@ class picasaPhotosSession(AddonHelper):
 		return True
 		
 	def doCaptcha(self,url,trynum):
-		fn = self.getFile(url)
+		target_file = self.dataPath('cache/captcha_image.jpg')
+		fn = self.getFile(url,target_file)
 		win = self.xbmcgui().WindowDialog()
 		image = self.xbmcgui().ControlImage(0,0,300,105,fn)
 		self.endOfDirectory(False,True,True)
