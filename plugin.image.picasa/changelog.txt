@@ -1,6 +1,10 @@
 picasaPhotos Changelog
 	
-Current Version : 0.8.7
+Current Version : 0.8.8
+
+*** 0.8.8 ***
+
+Enable display in hi-res when viewing photos
 
 *** 0.8.7 ***
 
