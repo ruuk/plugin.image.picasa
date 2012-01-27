@@ -103,9 +103,9 @@ class AddonHelper:
 		except:
 			return default
 			
-	def addLink(self,name,url,thumbnail,total=0,contextMenu=None):
+	def addLink(self,name,url,thumbnail,total=0,contextMenu=None,mtype='image'):
 		liz=self.xbmcgui().ListItem(name, iconImage="DefaultImage.png", thumbnailImage=thumbnail)
-		liz.setInfo(type="image", infoLabels={ "Title": name } )
+		liz.setInfo(type=mtype, infoLabels={ "Title": name } )
 		if contextMenu: liz.addContextMenuItems(contextMenu)
 		return self.xbmcplugin().addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz,isFolder=False,totalItems=total)
 

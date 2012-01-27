@@ -1,6 +1,11 @@
 picasaPhotos Changelog
+	
+Current Version : 0.8.7
 
-Current Version : 0.8.6
+*** 0.8.7 ***
+
+Handle videos
+Fix a bug where some private images would not show even when privacy filter allowed private
 
 *** 0.8.6 ***
 

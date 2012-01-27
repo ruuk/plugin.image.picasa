@@ -6,7 +6,7 @@ __plugin__ =  'picasa'
 __author__ = 'ruuk'
 __url__ = 'http://code.google.com/p/picasaphotos-xbmc/'
 __date__ = '01-22-2012'
-__version__ = '0.8.6'
+__version__ = '0.8.7'
 
 #xbmc.executebuiltin("Container.SetViewMode(500)")
 
@@ -168,6 +168,7 @@ class picasaPhotosSession(AddonHelper):
 		return True
 	
 	def filterAllows(self,privacy):
+		if privacy == 'only_you': privacy = 'protected'
 		if not self.pfilter: self.pfilter = self.getSettingInt('privacy_filter')
 		if not privacy in self.privacy_levels: return False
 		level = self.privacy_levels.index(privacy)
@@ -211,7 +212,14 @@ class picasaPhotosSession(AddonHelper):
 				lat_lon = ','.join(lat_lon.split())
 				contextMenu = [	(self.lang(30405),'XBMC.RunScript(special://home/addons/plugin.image.picasa/maps.py,plugin.image.picasa,%s,%s)' % (lat_lon,mparams)),
 								(self.lang(30406) % self.lang(30407),'XBMC.RunScript(special://home/addons/plugin.image.picasa/default.py,viewmode,viewmode_photos)')]
-			if not self.addLink(p.title.text,p.content.src,p.media.thumbnail[2].url,total=total,contextMenu=contextMenu): break
+			content = p.media.content[-1]
+			mtype = 'image'
+			url = p.content.src
+			if content.medium == 'video':
+				mtype = 'video'
+				url = content.url
+				
+			if not self.addLink(p.title.text,url,p.media.thumbnail[2].url,total=total,contextMenu=contextMenu,mtype=mtype): break
 			
 		## Next     Page ------------------------#
 		total = int(photos.total_results.text)
