@@ -6,7 +6,7 @@ __plugin__ =  'picasa'
 __author__ = 'ruuk'
 __url__ = 'http://code.google.com/p/picasaphotos-xbmc/'
 __date__ = '01-22-2012'
-__version__ = '0.8.9'
+__version__ = '0.9.0'
 
 #xbmc.executebuiltin("Container.SetViewMode(500)")
 
@@ -86,7 +86,7 @@ class picasaPhotosSession(AddonHelper):
 				#show image, get response
 				response = self.doCaptcha(curl,ct+1)
 				if not response: break
-				print response,ctoken
+				#print response,ctoken
 				self.api().ProgrammaticLogin(ctoken,response)
 				break
 			except CaptchaRequired,e: #@UnusedVariable
@@ -128,7 +128,7 @@ class picasaPhotosSession(AddonHelper):
 		return ''
 				
 	def go(self,mode,url,name,user):
-		print mode,url,name,user
+		#print mode,url,name,user
 		#for x in range(1,20): self.login()
 		#return
 		success = False
@@ -148,6 +148,7 @@ class picasaPhotosSession(AddonHelper):
 				
 	def process(self,mode,url,name,user,terms):
 		if mode==None or url==None or len(url)<1:
+			print 'plugin.image.picasa - Version: ' + __version__ 
 			self.CATEGORIES()
 		elif mode==1:
 			self.ALBUMS(user=url)
@@ -203,7 +204,7 @@ class picasaPhotosSession(AddonHelper):
 		##---------------------------------------#
 		
 		mparams = self.getMapParams()
-		
+		import time
 		for p in photos.entry:
 			if not self.filterAllows(p.extension_elements[0].text): continue
 			contextMenu = None
@@ -216,8 +217,8 @@ class picasaPhotosSession(AddonHelper):
 			mtype = 'image'
 			url = p.content.src
 			first,second = url.rsplit('/',1)
-			url = '/'.join([first,'s0',second])
-			#print url
+			url = '/'.join([first,'s0',second]) + '&t=' + str(time.time()) #without this, photos larger than 2048w XBMC says: "Texture manager unable to load file:" - Go Figure
+			#print url,p.media.__dict__
 			if content.medium == 'video':
 				mtype = 'video'
 				url = content.url
@@ -242,6 +243,16 @@ class picasaPhotosSession(AddonHelper):
 		self.addDir(next_+' ->',self.addonPath('resources/images/next.png'),url=url,mode=mode,start_index=next_index,**kwargs)
 		##---------------------------------------#
 		
+	def getCachedThumbnail(self,name,url):
+		tn = self.dataPath('cache/' + self.binascii().hexlify(name) + '.jpg')
+		if not os.path.exists(tn):
+			try:
+				return self.getFile(url,tn)
+			except:
+				return url
+		else:
+			return tn
+				
 	def setViewMode(self,setting):
 		mode = self.getSetting(setting)
 		if mode: self.xbmc().executebuiltin("Container.SetViewMode(%s)" % mode)
@@ -281,12 +292,7 @@ class picasaPhotosSession(AddonHelper):
 		tot = int(contacts.total_results.text)
 		cm = [(self.lang(30406) % self.lang(30102),'XBMC.RunScript(special://home/addons/plugin.image.picasa/default.py,viewmode,viewmode_favorites)')]
 		for c in contacts.entry:
-			tn = self.dataPath('cache/' + c.user.text + '.jpg')
-			if not os.path.exists(tn):
-				try:
-					tn = self.getFile(c.thumbnail.text,tn)
-				except:
-					tn = c.thumbnail.text
+			tn = self.getCachedThumbnail(c.user.text, c.thumbnail.text)
 			#tn = c.thumbnail.text
 			#tn = tn.replace('s64-c','s256-c').replace('?sz=64','?sz=256')
 			if not self.addDir(c.nickname.text,tn,tot,contextMenu=cm,url=c.user.text,mode=103,name=c.nickname.text): break
@@ -344,7 +350,6 @@ def setViewDefault():
 	import xbmc #@UnresolvedImport
 	setting = sys.argv[2]
 	view_mode = ""
-	print "test"
 	for ID in range( 50, 59 ) + range(500,600):
 		try:
 			if xbmc.getCondVisibility( "Control.IsVisible(%i)" % ID ):
@@ -353,7 +358,7 @@ def setViewDefault():
 		except:
 			pass
 	if not view_mode: return
-	print "ViewMode: " + view_mode
+	#print "ViewMode: " + view_mode
 	AddonHelper('plugin.image.picasa').setSetting(setting,view_mode)
 
 if sys.argv[1] == 'viewmode':

@@ -11,6 +11,7 @@ class AddonHelper:
 		self.__language__ = None
 		self._params = None
 		self._urllib2 = None
+		self._binascii = None
 		
 	def xbmc(self):
 		if self._xbmc: return self._xbmc
@@ -41,6 +42,12 @@ class AddonHelper:
 		import urllib2
 		self._urllib2 = urllib2
 		return urllib2
+	
+	def binascii(self):
+		if self._binascii: return self._binascii
+		import binascii
+		self._binascii = binascii
+		return binascii
 		
 	def setSetting(self,settingname,setting):
 		if not self.__settings__: self.__settings__ = self.xbmcaddon().Addon(id=self._pluginID)
