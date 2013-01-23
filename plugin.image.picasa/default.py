@@ -37,6 +37,8 @@ class picasaPhotosSession(AddonHelper):
 		
 		mpp = self.getSettingInt('max_per_page')
 		self.max_per_page = [10,20,30,40,50,75,100,200,500,1000][mpp]
+		self.isSlideshow = self.getParamString('plugin_slideshow_ss','false') == 'true'
+		print 'plugin.image.picasa: isSlideshow: %s' % self.isSlideshow
 		
 		update_dir = False
 		cache = True
@@ -314,7 +316,7 @@ class picasaPhotosSession(AddonHelper):
 		if not terms: return False
 		start = self.getParamInt('start_index',1)
 		uri = '/data/feed/api/user/%s?kind=photo&q=%s' % (user, terms)
-		photos = self.api().GetFeed(uri,limit=self.max_per_page,start_index=start)
+		photos = self.api().GetFeed(uri,limit=self.maxPerPage(),start_index=start)
 		self.addPhotos(photos,mode=4,terms=terms)
 		return True
 			
@@ -322,7 +324,7 @@ class picasaPhotosSession(AddonHelper):
 		if not terms: return False
 		start = self.getParamInt('start_index',1)
 		uri = '/data/feed/api/all?q=%s' % (terms.lower())
-		photos = self.api().GetFeed(uri,limit=self.max_per_page,start_index=start)
+		photos = self.api().GetFeed(uri,limit=self.maxPerPage(),start_index=start)
 		self.addPhotos(photos,mode=5,terms=terms)
 		return True
 				
@@ -350,14 +352,18 @@ class picasaPhotosSession(AddonHelper):
 	def TAG(self,tag,user='default'):
 		start = self.getParamInt('start_index',1)
 		uri = '/data/feed/api/user/%s?kind=photo&tag=%s' % (user, tag.lower())
-		photos = self.api().GetFeed(uri,limit=self.max_per_page,start_index=start)
+		photos = self.api().GetFeed(uri,limit=self.maxPerPage(),start_index=start)
 		self.addPhotos(photos,mode=102,user=user)
 
 	def ALBUM(self,aid,user='default'):
 		start = self.getParamInt('start_index',1)
 		uri = '/data/feed/api/user/%s/albumid/%s?kind=photo' % (user,aid)
-		photos = self.api().GetFeed(uri,limit=self.max_per_page,start_index=start)
+		photos = self.api().GetFeed(uri,limit=self.maxPerPage(),start_index=start)
 		self.addPhotos(photos,mode=101,user=user)
+		
+	def maxPerPage(self):
+		if self.isSlideshow: return 1000
+		return self.max_per_page
 			
 def setViewDefault():
 	import xbmc #@UnresolvedImport

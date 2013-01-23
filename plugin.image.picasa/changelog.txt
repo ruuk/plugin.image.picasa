@@ -5,6 +5,7 @@ Current Version : 0.9.1
 *** 0.9.1 ***
 
 Use image description when available
+Show maximum number of images when called from Plugin Slideshow Screensaver 
 
 *** 0.9.0 ***
 
