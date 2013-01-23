@@ -43,6 +43,9 @@ class AddonHelper:
 		self._urllib2 = urllib2
 		return urllib2
 	
+	def urllib(self):
+		return urllib
+	
 	def binascii(self):
 		if self._binascii: return self._binascii
 		import binascii
@@ -113,13 +116,14 @@ class AddonHelper:
 	def addLink(self,name,url,thumbnail,total=0,contextMenu=None,mtype='image'):
 		liz=self.xbmcgui().ListItem(name, iconImage="DefaultImage.png", thumbnailImage=thumbnail)
 		liz.setInfo(type=mtype, infoLabels={ "Title": name } )
+		#liz.setProperty('IsPlayable', 'true')
 		if contextMenu: liz.addContextMenuItems(contextMenu)
 		return self.xbmcplugin().addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz,isFolder=False,totalItems=total)
 
 	def addDir(self,_name,_thumbnail='',_total=0,contextMenu=None,**kwargs):
 		u=sys.argv[0]+"?"+urllib.urlencode(kwargs)
 		liz=self.xbmcgui().ListItem(_name,'',iconImage="DefaultFolder.png", thumbnailImage=_thumbnail)
-		liz.setInfo(type="image", infoLabels={"Title": _name} )
+		liz.setInfo(type="pictures", infoLabels={"Title": _name} )
 		if contextMenu: liz.addContextMenuItems(contextMenu)
 		return self.xbmcplugin().addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True,totalItems=_total)
 		

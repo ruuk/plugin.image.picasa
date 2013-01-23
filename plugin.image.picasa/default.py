@@ -6,7 +6,7 @@ __plugin__ =  'picasa'
 __author__ = 'ruuk'
 __url__ = 'http://code.google.com/p/picasaphotos-xbmc/'
 __date__ = '01-22-2012'
-__version__ = '0.9.0'
+__version__ = '0.9.1'
 
 #xbmc.executebuiltin("Container.SetViewMode(500)")
 
@@ -20,8 +20,9 @@ __version__ = '0.9.0'
 #print 'TES: ' + xbmc.getInfoLabel('Window(Pictures).Property(Viewmode)')
 
 class picasaPhotosSession(AddonHelper):
-	def __init__(self):
+	def __init__(self,show_image=False):
 		AddonHelper.__init__(self,'plugin.image.picasa')
+		if show_image: return self.showImage()
 		self._api = None
 		self.pfilter = None
 		self.privacy_levels = ['public','private','protected']
@@ -168,6 +169,16 @@ class picasaPhotosSession(AddonHelper):
 			self.CONTACT(url,name)
 		return True
 	
+	def showImage(self):
+		url = sys.argv[2].split('=',1)[-1]
+		url = self.urllib().unquote(url)
+		print('plugin.image.picasa - Showing photo with URL: ' + url)
+		image_path = os.path.join(self.dataPath('cache'),'image.jpg')
+		open(image_path,'w').write(self.urllib2().urlopen(url).read())
+		listitem = self.xbmcgui().ListItem(label='PicasaWeb Photo', path=image_path)
+		listitem.setInfo(type='pictures',infoLabels={"Title": 'PicasaWeb Photo'})
+		self.xbmcplugin().setResolvedUrl(handle=int(sys.argv[1]), succeeded=True, listitem=listitem)
+		
 	def filterAllows(self,privacy):
 		if privacy == 'only_you': privacy = 'protected'
 		if not self.pfilter: self.pfilter = self.getSettingInt('privacy_filter')
@@ -214,16 +225,18 @@ class picasaPhotosSession(AddonHelper):
 				contextMenu = [	(self.lang(30405),'XBMC.RunScript(special://home/addons/plugin.image.picasa/maps.py,plugin.image.picasa,%s,%s)' % (lat_lon,mparams)),
 								(self.lang(30406) % self.lang(30407),'XBMC.RunScript(special://home/addons/plugin.image.picasa/default.py,viewmode,viewmode_photos)')]
 			content = p.media.content[-1]
-			mtype = 'image'
+			mtype = 'pictures'
 			url = p.content.src
 			first,second = url.rsplit('/',1)
 			url = '/'.join([first,'s0',second]) + '&t=' + str(time.time()) #without this, photos larger than 2048w XBMC says: "Texture manager unable to load file:" - Go Figure
-			#print url,p.media.__dict__
+			#url = self.urllib().quote(url)
+			#url = 'plugin://plugin.image.picasa/?photo_url=' + url
+			#print url,p.media.description.text
+			title = p.media.description.text or p.title.text or p.media.title.text
 			if content.medium == 'video':
 				mtype = 'video'
 				url = content.url
-				
-			if not self.addLink(p.title.text,url,p.media.thumbnail[2].url,total=total,contextMenu=contextMenu,mtype=mtype): break
+			if not self.addLink(title,url,p.media.thumbnail[2].url,total=total,contextMenu=contextMenu,mtype=mtype): break
 			
 		## Next     Page ------------------------#
 		total = int(photos.total_results.text)
@@ -345,7 +358,7 @@ class picasaPhotosSession(AddonHelper):
 		uri = '/data/feed/api/user/%s/albumid/%s?kind=photo' % (user,aid)
 		photos = self.api().GetFeed(uri,limit=self.max_per_page,start_index=start)
 		self.addPhotos(photos,mode=101,user=user)
-		
+			
 def setViewDefault():
 	import xbmc #@UnresolvedImport
 	setting = sys.argv[2]
@@ -360,9 +373,11 @@ def setViewDefault():
 	if not view_mode: return
 	#print "ViewMode: " + view_mode
 	AddonHelper('plugin.image.picasa').setSetting(setting,view_mode)
-
+	
 if sys.argv[1] == 'viewmode':
 	setViewDefault()
+elif len(sys.argv) > 2 and sys.argv[2].startswith('?photo_url'):
+	picasaPhotosSession(show_image=True)
 else:
 	picasaPhotosSession()
 	
