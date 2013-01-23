@@ -5,7 +5,8 @@ Current Version : 0.9.1
 *** 0.9.1 ***
 
 Use image description when available
-Show maximum number of images when called from Plugin Slideshow Screensaver 
+Show maximum number of images when called from Plugin Slideshow Screensaver
+Changed name to PicasaWeb
 
 *** 0.9.0 ***
 
