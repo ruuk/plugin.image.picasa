@@ -20,6 +20,9 @@
     <string id="30102">Favorite Users</string>
     <string id="30103">Search My Photos</string>
     <string id="30104">Search PicasaWeb</string>
+    
+    <string id="30200">@REPLACE@'s Albums</string>
+    <string id="30201">@REPLACE@'s Tags</string>
     <string id="30202">@REPLACE@'s Favorite Users</string>
     <string id="30203">Search @REPLACE@'s Photos</string>
     
