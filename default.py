@@ -6,7 +6,7 @@ __plugin__ =  'picasa'
 __author__ = 'ruuk'
 __url__ = 'http://code.google.com/p/picasaphotos-xbmc/'
 __date__ = '01-22-2012'
-__version__ = '0.9.1'
+__version__ = '0.9.3'
 
 #xbmc.executebuiltin("Container.SetViewMode(500)")
 
@@ -220,12 +220,13 @@ class picasaPhotosSession(AddonHelper):
 		import time
 		for p in photos.entry:
 			if not self.filterAllows(p.extension_elements[0].text): continue
-			contextMenu = None
+			contextMenu = []
 			lat_lon = p.geo.Point.pos.text
 			if lat_lon:
 				lat_lon = ','.join(lat_lon.split())
 				contextMenu = [	(self.lang(30405),'XBMC.RunScript(special://home/addons/plugin.image.picasa/maps.py,plugin.image.picasa,%s,%s)' % (lat_lon,mparams)),
-								(self.lang(30406) % self.lang(30407),'XBMC.RunScript(special://home/addons/plugin.image.picasa/default.py,viewmode,viewmode_photos)')]
+								(self.lang(30406) % self.lang(30407),'XBMC.RunScript(special://home/addons/plugin.image.picasa/default.py,viewmode,viewmode_photos)'),
+								]
 			content = p.media.content[-1]
 			mtype = 'pictures'
 			url = p.content.src
@@ -238,7 +239,12 @@ class picasaPhotosSession(AddonHelper):
 			if content.medium == 'video':
 				mtype = 'video'
 				url = content.url
-			if not self.addLink(title,url,p.media.thumbnail[2].url,total=total,contextMenu=contextMenu,mtype=mtype): break
+			contextMenu.append(('Download','XBMC.RunScript(special://home/addons/plugin.image.picasa/default.py,download,%s)' % url))
+			if p.media.thumbnail and len(p.media.thumbnail) > 2:
+				thumb = p.media.thumbnail[2].url
+			else:
+				thumb = p.media.content[0].url
+			if not self.addLink(title,url,thumb,total=total,contextMenu=contextMenu,mtype=mtype): break
 			
 		## Next     Page ------------------------#
 		total = int(photos.total_results.text)
@@ -380,8 +386,15 @@ def setViewDefault():
 	#print "ViewMode: " + view_mode
 	AddonHelper('plugin.image.picasa').setSetting(setting,view_mode)
 	
+def downloadURL():
+	url = sys.argv[2]
+	import saveurl
+	saveurl.SaveURL('plugin.image.picasa',url,'cache')
+	
 if sys.argv[1] == 'viewmode':
 	setViewDefault()
+elif sys.argv[1] == 'download':
+	downloadURL()
 elif len(sys.argv) > 2 and sys.argv[2].startswith('?photo_url'):
 	picasaPhotosSession(show_image=True)
 else:

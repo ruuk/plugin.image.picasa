@@ -1,6 +1,15 @@
 picasaPhotos Changelog
 	
-Current Version : 0.9.1
+Current Version : 0.9.3
+
+*** 0.9.3 ***
+
+Changed 'Search Picasa' to 'Search PicasaWeb'
+Fix error when searching PicasWeb caused by missing thumbnails
+
+*** 0.9.2 ***
+
+Added the ability to download photos to defined writable file locations. Use 'Download' from photo context menu
 
 *** 0.9.1 ***
 
