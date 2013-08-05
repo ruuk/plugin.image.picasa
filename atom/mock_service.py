@@ -34,7 +34,11 @@ recordings = []
 real_request_handler = None
 
 def ConcealValueWithSha(source):
-  import sha
+  try:
+    import sha
+  except:
+    import hashlib
+    sha = hashlib.sha1
   return sha.new(source[:-5]).hexdigest()
 
 def DumpRecordings(conceal_func=ConcealValueWithSha):
