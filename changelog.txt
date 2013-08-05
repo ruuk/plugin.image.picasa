@@ -1,6 +1,10 @@
 picasaPhotos Changelog
 	
-Current Version : 0.9.3
+Current Version : 0.9.4
+
+*** 0.9.4 ***
+
+Fix bug caused by deprecated md5/sha imports in the google APIs
 
 *** 0.9.3 ***
 
