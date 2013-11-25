@@ -236,6 +236,7 @@ class picasaPhotosSession(AddonHelper):
 			#url = 'plugin://plugin.image.picasa/?photo_url=' + url
 			#print url,p.media.description.text
 			title = p.media.description.text or p.title.text or p.media.title.text
+			title = title.replace('\n',' ')
 			if content.medium == 'video':
 				mtype = 'video'
 				url = content.url

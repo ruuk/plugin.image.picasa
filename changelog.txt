@@ -2,6 +2,10 @@ picasaPhotos Changelog
 	
 Current Version : 0.9.4
 
+*** 0.9.5 ***
+
+Now removes newlines from image titles
+
 *** 0.9.4 ***
 
 Fix bug caused by deprecated md5/sha imports in the google APIs
