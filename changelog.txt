@@ -1,6 +1,10 @@
 picasaPhotos Changelog
 	
-Current Version : 0.9.6
+Current Version : 0.9.7
+
+*** 0.9.7 ***
+
+Added Crypto library to hopefully fix errors
 
 *** 0.9.6 ***
 
