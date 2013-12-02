@@ -1,11 +1,9 @@
 """Miscellaneous functions to mask Python/Jython differences."""
 
 import os
-try:
-	import sha
-except:
-	import hashlib
-	sha = hashlib.sha1
+
+import hashlib
+sha = hashlib.sha1
 
 if os.name != "java":
     BaseException = Exception
