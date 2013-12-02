@@ -1,6 +1,11 @@
 picasaPhotos Changelog
 	
-Current Version : 0.9.7
+Current Version : 1.0.0
+
+*** 1.0.0 ***
+
+Changes to addon.xml for Gotham
+Convert language strings.xml files to strings.po
 
 *** 0.9.7 ***
 
