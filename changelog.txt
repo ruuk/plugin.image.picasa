@@ -1,6 +1,10 @@
 picasaPhotos Changelog
 	
-Current Version : 0.9.5
+Current Version : 0.9.6
+
+*** 0.9.6 ***
+
+Change some error handling for better diagnostics
 
 *** 0.9.5 ***
 

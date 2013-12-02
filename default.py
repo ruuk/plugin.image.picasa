@@ -6,7 +6,7 @@ __plugin__ =  'picasa'
 __author__ = 'ruuk'
 __url__ = 'http://code.google.com/p/picasaphotos-xbmc/'
 __date__ = '01-22-2012'
-__version__ = '0.9.5'
+__version__ = '0.9.6'
 
 #xbmc.executebuiltin("Container.SetViewMode(500)")
 
@@ -143,6 +143,8 @@ class picasaPhotosSession(AddonHelper):
 			success = self.process(mode,url,name,user,terms)
 			#print 'NO_LOGIN ' + str(mode)
 		except: #TODO more discriminating except clause
+			import traceback
+			traceback.print_exc()
 			if self.user == 'default':
 				print 'PHOTOS: LOGIN ' + str(mode)
 				if not self.login(): return False #only login if we have to
