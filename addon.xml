@@ -18,6 +18,7 @@
 
     <description lang="en">Browse your PicasaWeb albums and tags. Browse your favorite user's albums, tags, and their favorite users. Search your photos/videos, your contact's photos/videos, and search PicasaWeb. View maps of photos with geo location data.</description>
     <description lang="nl">Blader door uw PicasaWeb albums en afbeeldingen van u zelf of uw vrienden.</description>
+    <language></language>
     <platform>all</platform>
     <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
     <forum>http://forum.xbmc.org/showthread.php?tid=83499</forum>
