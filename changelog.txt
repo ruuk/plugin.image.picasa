@@ -1,6 +1,11 @@
 picasaPhotos Changelog
 	
-Current Version : 1.0.3
+Current Version : 1.0.4
+
+*** 1.0.4 ***
+
+Add xbmcswift2 import to addon.xml
+Remove elementtree import
 
 *** 1.0.3 ***
 
