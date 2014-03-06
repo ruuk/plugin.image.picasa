@@ -18,11 +18,7 @@ msgid "General"
 msgstr ""
 
 msgctxt "#30001"
-msgid "Login Email"
-msgstr ""
-
-msgctxt "#30002"
-msgid "Login Password"
+msgid "User Name"
 msgstr ""
 
 msgctxt "#30003"
