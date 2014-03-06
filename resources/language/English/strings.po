@@ -54,7 +54,7 @@ msgid "Private"
 msgstr ""
 
 msgctxt "#30011"
-msgid "Use Login"
+msgid "Use With Authorization"
 msgstr ""
 
 #empty strings from id 30012 to 30099
