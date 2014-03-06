@@ -1,6 +1,12 @@
 picasaPhotos Changelog
 	
-Current Version : 1.0.2
+Current Version : 1.0.3
+
+*** 1.0.3 ***
+
+Dump google API and create internal API
+Change to oauth2 device authentication
+Use xbmcswift2 for plugin URL routing
 
 *** 1.0.2 ***
 
