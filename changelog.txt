@@ -1,6 +1,11 @@
 picasaPhotos Changelog
 	
-Current Version : 1.0.5
+Current Version : 1.0.6
+
+*** 1.0.6 ***
+
+Fix for error when not using authentication
+Change default max items per page to 20
 
 *** 1.0.5 ***
 

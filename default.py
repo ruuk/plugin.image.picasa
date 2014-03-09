@@ -46,7 +46,7 @@ def ERROR(message,hide_tb=False):
 class PicasaWebAPI:
 	baseURL = 'https://picasaweb.google.com'
 	
-	def authorized(): return False
+	def authorized(self): return False
 	
 	def GetFeed(self,url=None,*args,**kwargs): raise Exception('Not Implemented')
 	
