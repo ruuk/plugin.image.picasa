@@ -1,6 +1,10 @@
 picasaPhotos Changelog
 	
-Current Version : 1.0.6
+Current Version : 1.0.7
+
+*** 1.0.7 ***
+
+Add manual printing of traceback for platforms like ATV2
 
 *** 1.0.6 ***
 

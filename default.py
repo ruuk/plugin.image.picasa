@@ -507,6 +507,9 @@ elif sys.argv[1] == 'download':
 elif len(sys.argv) > 2 and sys.argv[2].startswith('?photo_url'):
 	picasaPhotosSession(show_image=True)
 else:
-	SESSION = picasaPhotosSession()
-	plugin.run()
+	try:
+		SESSION = picasaPhotosSession()
+		plugin.run()
+	except:
+		ERROR('FAIL')
 	
