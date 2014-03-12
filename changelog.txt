@@ -1,6 +1,10 @@
 picasaPhotos Changelog
 	
-Current Version : 1.0.7
+Current Version : 1.0.8
+
+*** 1.0.8 ***
+
+Added import for the requests module to addon.xml
 
 *** 1.0.7 ***
 
