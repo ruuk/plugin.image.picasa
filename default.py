@@ -43,7 +43,10 @@ def ERROR(message,hide_tb=False):
 	return short
 
 def U(string):
-	return string.decode("utf-8")
+	if isinstance(string,str):
+		return unicode(string,"utf-8")
+	else:
+		return unicode(string.encode('utf-8'),'utf-8')
 
 class PicasaWebAPI:
 	baseURL = 'https://picasaweb.google.com'
@@ -360,7 +363,7 @@ class picasaPhotosSession(AddonHelper):
 		items = []
 		for album in albums.get('entry',[]):
 			if not self.filterAllows(album['gphoto$access']['$t']): continue
-			title = '{0} ({1})'.format(U(album['title']['$t']),album['gphoto$numphotos']['$t'])
+			title = u'{0} ({1})'.format(U(album['title']['$t']),album['gphoto$numphotos']['$t'])
 			items.append({	'label':title,
 							'path':plugin.url_for('ALBUM',ID=album['gphoto$id']['$t'],user=user),
 							'thumbnail':album['media$group']['media$thumbnail'][0]['url'],
@@ -392,7 +395,7 @@ class picasaPhotosSession(AddonHelper):
 			tn = self.getCachedThumbnail(c['gphoto$user']['$t'], c['gphoto$thumbnail']['$t'])
 			#tn = c['thumbnail']['$t']
 			#tn = tn.replace('s64-c','s256-c').replace('?sz=64','?sz=256')
-			items.append({	'label':U(c['gphoto$nickname']['$t']),
+			items.append({	u'label':U(c['gphoto$nickname']['$t']),
 							'path':plugin.url_for('CONTACT',user=c['gphoto$user']['$t'],name=c['gphoto$nickname']['$t']),
 							'thumbnail':tn,
 							'context_menu':cm})
