@@ -1,6 +1,10 @@
 picasaPhotos Changelog
 	
-Current Version : 1.0.8
+Current Version : 1.0.9
+
+*** 1.0.9 ***
+
+Fix for encoding errors
 
 *** 1.0.8 ***
 

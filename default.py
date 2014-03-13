@@ -42,6 +42,8 @@ def ERROR(message,hide_tb=False):
 		traceback.print_exc()
 	return short
 
+def U(string):
+	return string.decode("utf-8")
 
 class PicasaWebAPI:
 	baseURL = 'https://picasaweb.google.com'
@@ -291,7 +293,7 @@ class picasaPhotosSession(AddonHelper):
 			img_url = p['media$group']['media$content'][-1]['url']
 			first,second = img_url.rsplit('/',1)
 			img_url = '/'.join([first,'s0',second]) + '&t=' + str(time.time()) #without this, photos larger than 2048w XBMC says: "Texture manager unable to load file:" - Go Figure
-			title = p['media$group']['media$description']['$t'] or p['title']['$t'] or p['media$group']['media$title']['$t']
+			title = U(p['media$group']['media$description']['$t'] or p['title']['$t'] or p['media$group']['media$title']['$t'])
 			title = title.replace('\n',' ')
 			contextMenu.append(('Download','XBMC.RunScript(plugin.image.picasa,download,%s)' % self.urllib().quote(img_url)))
 			if p['media$group']['media$thumbnail'] and len(p['media$group']['media$thumbnail']) > 2:
@@ -352,13 +354,13 @@ class picasaPhotosSession(AddonHelper):
 	def ALBUMS(self):
 		user = self.user()
 		
-		albums = self.api().GetFeed('/data/feed/api/user/%s?kind=album&thumbsize=256c' % (user))
+		albums = self.api().GetFeed('/data/feed/api/user/%s?kind=album&thumbsize=256c' % user)
 		#tot = len(albums['entry'])
 		cm = [(self.lang(30406) % self.lang(30100),'XBMC.RunScript(plugin.image.picasa,viewmode,viewmode_albums)')]
 		items = []
 		for album in albums.get('entry',[]):
 			if not self.filterAllows(album['gphoto$access']['$t']): continue
-			title = '{0} ({1})'.format(album['title']['$t'],album['gphoto$numphotos']['$t'])
+			title = '{0} ({1})'.format(U(album['title']['$t']),album['gphoto$numphotos']['$t'])
 			items.append({	'label':title,
 							'path':plugin.url_for('ALBUM',ID=album['gphoto$id']['$t'],user=user),
 							'thumbnail':album['media$group']['media$thumbnail'][0]['url'],
@@ -374,7 +376,7 @@ class picasaPhotosSession(AddonHelper):
 		cm = [(self.lang(30406) % self.lang(30101),'XBMC.RunScript(plugin.image.picasa,viewmode,viewmode_tags)')]
 		items = []
 		for t in tags.get('entry',[]):
-			items.append({	'label':t['title']['$t'],
+			items.append({	'label':U(t['title']['$t']),
 							'path':plugin.url_for('TAG',ID=t['title']['$t'],user=user),
 							'thumbnail':self.addonPath('resources/images/tags.png'),
 							'context_menu':cm})
@@ -382,7 +384,7 @@ class picasaPhotosSession(AddonHelper):
 	
 	@plugin.route('/contacts/')
 	def CONTACTS(self):		
-		contacts = self.api().GetFeed('/data/feed/api/user/%s/contacts?kind=user' % (self.user()))
+		contacts = self.api().GetFeed('/data/feed/api/user/%s/contacts?kind=user' % self.user())
 		#tot = int(contacts.total_results.text)
 		cm = [(self.lang(30406) % self.lang(30102),'XBMC.RunScript(plugin.image.picasa,viewmode,viewmode_favorites)')]
 		items = []
@@ -390,7 +392,7 @@ class picasaPhotosSession(AddonHelper):
 			tn = self.getCachedThumbnail(c['gphoto$user']['$t'], c['gphoto$thumbnail']['$t'])
 			#tn = c['thumbnail']['$t']
 			#tn = tn.replace('s64-c','s256-c').replace('?sz=64','?sz=256')
-			items.append({	'label':c['gphoto$nickname']['$t'],
+			items.append({	'label':U(c['gphoto$nickname']['$t']),
 							'path':plugin.url_for('CONTACT',user=c['gphoto$user']['$t'],name=c['gphoto$nickname']['$t']),
 							'thumbnail':tn,
 							'context_menu':cm})
@@ -400,7 +402,7 @@ class picasaPhotosSession(AddonHelper):
 	@plugin.route('/search_user/<ID>',name='SEARCH_USER_PAGE')
 	def SEARCH_USER(self,ID=''):
 		terms = self.getSearchTerms(ID)
-		uri = '/data/feed/api/user/%s?kind=photo&q=%s' % (self.user(), terms)
+		uri = '/data/feed/api/user/%s?kind=photo&q=%s' % (self.user(), self.urllib().quote(terms))
 		photos = self.api().GetFeed(uri,max_results=self.maxPerPage(),start_index=self.start())
 		return self.addPhotos(photos,'SEARCH_USER_PAGE',terms)
 		
@@ -408,7 +410,7 @@ class picasaPhotosSession(AddonHelper):
 	@plugin.route('/search/<ID>',name='SEARCH_PICASA_PAGE')
 	def SEARCH_PICASA(self,ID=''):
 		terms = self.getSearchTerms(ID)
-		uri = '/data/feed/api/all?q=%s' % (terms.lower())
+		uri = '/data/feed/api/all?q=%s' % self.urllib().quote(terms.lower())
 		photos = self.api().GetFeed(uri,max_results=self.maxPerPage(),start_index=self.start())
 		return self.addPhotos(photos,'SEARCH_PICASA_PAGE',terms)
 	
