@@ -63,24 +63,27 @@ class AddonHelper:
 		self._binascii = binascii
 		return binascii
 		
-	def setSetting(self,settingname,setting):
+	def setSetting(self,settingname,value):
 		if not self.__settings__: self.__settings__ = self.xbmcaddon().Addon(id=self._pluginID)
-		if isinstance(setting,bool):
-			setting = setting and 'true' or 'false'
-		elif isinstance(setting,int):
-			setting = str(setting)
-		self.__settings__.setSetting(settingname,setting)
+		if isinstance(value,list):
+			value = ':!,!:'.join(value)
+		elif isinstance(value,bool):
+			value = value and 'true' or 'false'
+			
+		self.__settings__.setSetting(settingname,str(value))
 		
 	def getSetting(self,setting,default=None):
 		if not self.__settings__: self.__settings__ = self.xbmcaddon().Addon(id=self._pluginID)
 		val = self.__settings__.getSetting(setting)
 		if not val: return default
 		if isinstance(default,bool):
-			return self.getSettingBool(setting)
+			return val.lower() == 'true'
 		elif isinstance(default,int):
-			return self.getSettingInt(setting)
+			return int(float(val or 0))
+		elif isinstance(default,list):
+			return val.split(':!,!:')
 			
-		return self.__settings__.getSetting(setting) or default
+		return val
 		
 	def getSettingInt(self,setting):
 		return int(self.getSetting(setting))

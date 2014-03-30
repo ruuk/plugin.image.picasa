@@ -44,9 +44,8 @@ def ERROR(message,hide_tb=False):
 
 def U(string):
 	if isinstance(string,str):
-		return unicode(string,"utf-8")
-	else:
-		return unicode(string.encode('utf-8'),'utf-8')
+		return string.decode("utf-8")
+	return string
 
 class PicasaWebAPI:
 	baseURL = 'https://picasaweb.google.com'
@@ -396,7 +395,7 @@ class picasaPhotosSession(AddonHelper):
 			#tn = c['thumbnail']['$t']
 			#tn = tn.replace('s64-c','s256-c').replace('?sz=64','?sz=256')
 			items.append({	u'label':U(c['gphoto$nickname']['$t']),
-							'path':plugin.url_for('CONTACT',user=c['gphoto$user']['$t'],name=c['gphoto$nickname']['$t']),
+							'path':plugin.url_for('CONTACT',user=U(c['gphoto$user']['$t']),name=U(c['gphoto$nickname']['$t'])),
 							'thumbnail':tn,
 							'context_menu':cm})
 		return plugin.finish(items, view_mode=self.getViewMode('viewmode_favorites'))
