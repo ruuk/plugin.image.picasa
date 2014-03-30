@@ -47,6 +47,11 @@ def U(string):
 		return string.decode("utf-8")
 	return string
 
+def S(uni):
+	if isinstance(uni,unicode):
+		return uni.encode("utf-8")
+	return uni
+
 class PicasaWebAPI:
 	baseURL = 'https://picasaweb.google.com'
 	
@@ -395,7 +400,7 @@ class picasaPhotosSession(AddonHelper):
 			#tn = c['thumbnail']['$t']
 			#tn = tn.replace('s64-c','s256-c').replace('?sz=64','?sz=256')
 			items.append({	u'label':U(c['gphoto$nickname']['$t']),
-							'path':plugin.url_for('CONTACT',user=U(c['gphoto$user']['$t']),name=U(c['gphoto$nickname']['$t'])),
+							'path':plugin.url_for('CONTACT',user=S(c['gphoto$user']['$t']),name=S(c['gphoto$nickname']['$t'])),
 							'thumbnail':tn,
 							'context_menu':cm})
 		return plugin.finish(items, view_mode=self.getViewMode('viewmode_favorites'))
@@ -418,8 +423,7 @@ class picasaPhotosSession(AddonHelper):
 	
 	@plugin.route('/contact/<user>')
 	def CONTACT(self,user):
-		name = plugin.request.args.get('name',[''])[0]
-
+		name = U(plugin.request.args.get('name',[''])[0])
 		#fix for names ending in 
 		if name[-1].lower() == 's':
 			albums = self.lang(30200).replace("@REPLACE@'s",name + "'").replace('@REPLACE@',name)
