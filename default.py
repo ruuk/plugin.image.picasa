@@ -299,7 +299,7 @@ class picasaPhotosSession(AddonHelper):
 					img_url = c['url']
 			img_url = p['media$group']['media$content'][-1]['url']
 			first,second = img_url.rsplit('/',1)
-			img_url = '/'.join([first,'s0',second]) + '&t=' + str(time.time()) #without this, photos larger than 2048w XBMC says: "Texture manager unable to load file:" - Go Figure
+			img_url = '/'.join([first,'s0',second]) #Not working since Gotham # + '&t=' + str(time.time()) #without this, photos larger than 2048w XBMC says: "Texture manager unable to load file:" - Go Figure
 			title = U(p['media$group']['media$description']['$t'] or p['title']['$t'] or p['media$group']['media$title']['$t'])
 			title = title.replace('\n',' ')
 			contextMenu.append(('Download','XBMC.RunScript(plugin.image.picasa,download,%s)' % self.urllib().quote(img_url)))
