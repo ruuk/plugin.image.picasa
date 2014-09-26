@@ -1,6 +1,7 @@
 #!/usr/bin/python
-import os, sys, time
+import os, sys
 from addon import AddonHelper
+import OAuthHelper
 
 SESSION = None
 from xbmcswift2 import Plugin
@@ -52,110 +53,25 @@ def S(uni):
 		return uni.encode("utf-8")
 	return uni
 
-class PicasaWebAPI:
+class PicasaWebAPI(OAuthHelper.GoogleOAuthorizer):
 	baseURL = 'https://picasaweb.google.com'
-	
-	def authorized(self): return False
-	
-	def GetFeed(self,url=None,*args,**kwargs): raise Exception('Not Implemented')
-	
-class PicasaWebOauth2API(PicasaWebAPI):
-	clientID = '905208609020-blro1d2vo7qnjo53ku3ajt6tk40i02ip.apps.googleusercontent.com'
-	clientS = '9V-BDq0uD4VN8VAfP0U0wIOp'
-	auth1URL = 'https://accounts.google.com/o/oauth2/device/code'
-	auth2URL = 'https://accounts.google.com/o/oauth2/token'
-	authScope = 'https://picasaweb.google.com/data/'
-	grantType = 'http://oauth.net/grant_type/device/1.0'
-	publicAPIKey = 'AIzaSyCt4tydVOveutwJX8CmTbf05y5LLZVwm0A'
-	
+
 	def __init__(self):
 		self.helper = AddonHelper('plugin.image.picasa')
-		self.authPollInterval = 5
-		self.authExpires = int(time.time())
-		self.deviceCode = ''
-		self.verificationURL = 'http://www.google.com/device'
-		import requests2 as requests
-		self.session = requests.Session()
-		self.loadToken()
-		
-	def loadToken(self):
-		self.token = self.helper.getSetting('access_token')
-		self.tokenExpires = self.helper.getSetting('token_expiration',0)
+		OAuthHelper.GoogleOAuthorizer.__init__(self,
+			addon_id='plugin.image.picasa',
+			client_id='905208609020-blro1d2vo7qnjo53ku3ajt6tk40i02ip.apps.googleusercontent.com',
+			client_secret='9V-BDq0uD4VN8VAfP0U0wIOp',
+			auth_scope='https://picasaweb.google.com/data/'
+		)
 
-	def getToken(self):
-		if self.tokenExpires <= int(time.time()):
-			return self.updateToken()
-		return self.token
-		
-	def updateToken(self):
-		LOG('REFRESHING TOKEN')
-		data = {	'client_id':self.clientID,
-					'client_secret':self.clientS,
-					'refresh_token':self.helper.getSetting('refresh_token'),
-					'grant_type':'refresh_token'}
-		json = self.session.post(self.auth2URL,data=data).json()
-		if 'access_token' in json:
-			self.saveData(json)
-		else:
-			LOG('Failed to update token')
-		return self.token
-	
-	def authorized(self):
-		return bool(self.token)
-		
-	def authorize(self):
-		userCode = self.getDeviceUserCode()
-		if not userCode: return
-		self.showUserCode(userCode)
-		import xbmc, xbmcgui
-		d = xbmcgui.DialogProgress()
-		d.create('Waiting','Waiting for auth...')
-		ct=0
-		while True:
-			d.update(ct,'Waiting for auth...')
-			json = self.pollAuthServer()
-			if 'access_token' in json: break
-			if d.iscanceled(): return
-			for x in range(0,self.authPollInterval):
-				xbmc.sleep(1000)
-				if d.iscanceled(): return
-			ct+=1
-		return self.saveData(json)
-		
-	def saveData(self,json):
-		self.token = json.get('access_token','')
-		refreshToken = json.get('refresh_token')
-		self.tokenExpires = json.get('expires_in',3600) + int(time.time())
-		self.helper.setSetting('access_token',self.token)
-		if refreshToken: self.helper.setSetting('refresh_token',refreshToken)
-		self.helper.setSetting('token_expiration',self.tokenExpires)
-		return self.token and refreshToken
-		
-	def pollAuthServer(self):
-		json = self.session.post(self.auth2URL,data={	'client_id':self.clientID,
-															'client_secret':self.clientS,
-															'code':self.deviceCode,
-															'grant_type':self.grantType
-														}).json()
-		if 'error' in json:
-			if json['error'] == 'slow_down':
-				self.authPollInterval += 1
-		return json
+	def _setSetting(self,key,value):
+		self.helper.setSetting(key,value)
 
-	def showUserCode(self,user_code):
-		import xbmcgui
-		xbmcgui.Dialog().ok('Authorization','Go to: ' + self.verificationURL,'Enter code: ' + user_code,'Click OK when done.')
-		
-	def getDeviceUserCode(self):
-		json = self.session.post(self.auth1URL,data={'client_id':self.clientID,'scope':self.authScope}).json()
-		self.authPollInterval = json.get('interval',5)
-		self.authExpires = json.get('expires_in',1800) + int(time.time())
-		self.deviceCode = json.get('device_code','')
-		self.verificationURL = json.get('verification_url',self.verificationURL)
-		if 'error' in json:
-			LOG('ERROR - getDeviceUserCode(): ' + json.get('error_description',''))
-		return json.get('user_code','')
-			
+	def _getSetting(self,key,default=None):
+		return self.helper.getSetting(key,default)
+
+class PicasaWebOauth2API(PicasaWebAPI):
 	def GetFeed(self,url=None,*args,**kwargs):
 		url = self.baseURL + url + '&alt=json'
 		for k,v in kwargs.items():
@@ -170,14 +86,10 @@ class PicasaWebOauth2API(PicasaWebAPI):
 			print resp.text
 			raise
 		return json.get('feed')
-		
+
 class PicasaWebPublicAPI(PicasaWebAPI):
 	publicAPIKey = 'AIzaSyCt4tydVOveutwJX8CmTbf05y5LLZVwm0A'
 	
-	def __init__(self):
-		import requests2 as requests
-		self.session = requests.Session()
-		
 	def GetFeed(self,url=None,*args,**kwargs):
 		url = self.baseURL + url + '&alt=json'
 		for k,v in kwargs.items():
@@ -276,7 +188,6 @@ class picasaPhotosSession(AddonHelper):
 		##---------------------------------------#
 		
 		mparams = self.getMapParams()
-		import time
 		for p in photos.get('entry',[]):
 			if not self.filterAllows(p['gphoto$access']['$t']): continue
 			contextMenu = []
