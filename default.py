@@ -53,23 +53,26 @@ def S(uni):
 		return uni.encode("utf-8")
 	return uni
 
+def getJSON():
+	try:
+		import json
+	except:
+		import simplejson as json
+	return json
+
 class PicasaWebAPI(OAuthHelper.GoogleOAuthorizer):
 	baseURL = 'https://picasaweb.google.com'
 
-	def __init__(self):
+	def __init__(self,set_setting=None,get_setting=None):
 		self.helper = AddonHelper('plugin.image.picasa')
+		self._setSetting = set_setting
+		self._getSetting = get_setting
 		OAuthHelper.GoogleOAuthorizer.__init__(self,
 			addon_id='plugin.image.picasa',
 			client_id='905208609020-blro1d2vo7qnjo53ku3ajt6tk40i02ip.apps.googleusercontent.com',
 			client_secret='9V-BDq0uD4VN8VAfP0U0wIOp',
 			auth_scope='https://picasaweb.google.com/data/'
 		)
-
-	def _setSetting(self,key,value):
-		self.helper.setSetting(key,value)
-
-	def _getSetting(self,key,default=None):
-		return self.helper.getSetting(key,default)
 
 class PicasaWebOauth2API(PicasaWebAPI):
 	def GetFeed(self,url=None,*args,**kwargs):
@@ -111,6 +114,7 @@ class picasaPhotosSession(AddonHelper):
 		if show_image: return self.showImage()
 		self._api = None
 		self.pfilter = None
+		self.currentUser = self.getSetting('current_user',None)
 		self.privacy_levels = ['public','private','protected']
 		
 		if self.getSetting('use_login',False):
@@ -129,17 +133,75 @@ class picasaPhotosSession(AddonHelper):
 	def setApi(self):
 		self._api = None
 		if self.getSetting('use_login',False):
-			self._api = PicasaWebOauth2API()
+			self._api = PicasaWebOauth2API(self.setOAuthSetting,self.getOAuthSetting)
 			if not self._api.authorized():
+				name = self.askUserName()
+				if not name: return
+				self.changeCurrentUser(name)
 				self._api.authorize()
 		else:
-			self._api = PicasaWebPublicAPI()
+			self._api = PicasaWebPublicAPI(self.setOAuthSetting,self.getOAuthSetting)
 		return self._api
 		
 	def api(self):
 		if self._api: return self._api
 		return self.setApi()
 	
+	def checkUpgrade(self):
+		token = self.getSetting('access_token')
+		if not token: return
+		self.setSetting('access_token','')
+		self.currentUser = 'default'
+		self.setSetting('current_user','default')
+		self.saveUsers(
+			{
+				'default':
+				{
+					'access_token': token,
+					'refresh_token': self.getSetting('refresh_token'),
+					'token_expiration': self.getSetting('token_expiration','0')
+				}
+			}
+		)
+		self.setSetting('refresh_token','')
+		self.setSetting('token_expiration','')
+		
+	def loadUsers(self):
+		json = getJSON()
+		import binascii
+		
+		jsonString = self.getSetting('users')
+		if not jsonString: return {}
+		return json.loads(binascii.unhexlify(jsonString))
+
+	def saveUsers(self,user_list):
+		json = getJSON()
+		import binascii
+		
+		self.setSetting('users',binascii.hexlify(json.dumps(user_list)))
+
+	def changeCurrentUser(self,name):
+		self.currentUser = name
+		self.setSetting('current_user',name)
+
+	def deleteUser(self,name):
+		users = self.loadUsers()
+		if not name in users: return
+		del(users[name])
+		self.saveUsers(users)
+
+	def setOAuthSetting(self,key,val):
+		users = self.loadUsers()
+		if not self.currentUser in users: users[self.currentUser] = {}
+		users[self.currentUser][key] = val
+		self.saveUsers(users)
+
+	def getOAuthSetting(self,key,default=None):
+		users = self.loadUsers()
+		if not self.currentUser in users: return default
+		if not key in users[self.currentUser]: return default
+		return users[self.currentUser][key]
+
 	def showImage(self):
 		url = sys.argv[2].split('=',1)[-1]
 		url = self.urllib().unquote(url)
@@ -256,17 +318,59 @@ class picasaPhotosSession(AddonHelper):
 		else:
 			return tn
 		
+	def apiAuthorized(self):
+		return self.api() and self.api().authorized()
+
 	@plugin.route('/')
-	def CATEGORIES(self):
-		LOG(('Version: %s' % self.version()) + (self.api().authorized() and ' AUTHORIZED' or ''))
+	@plugin.route('/categories/',name='CATEGORIES_SWITCH',options={'switch':True})
+	def CATEGORIES(self,switch=None,add=None):
+		self.checkUpgrade()
+		if switch:
+			self.switchUser()
+		LOG(('Version: %s' % self.version()) + (self.apiAuthorized() and ' AUTHORIZED' or ''))
 		items = []
-		if self.user():
+		print repr(self.api)
+		if self.apiAuthorized() and self.user():
 			items.append({'label':self.lang(30100),'path':plugin.url_for('ALBUMS'),'thumbnail':self.addonPath('resources/images/albums.png')})
 			items.append({'label':self.lang(30101),'path':plugin.url_for('TAGS'),'thumbnail':self.addonPath('resources/images/tags.png')})
 			items.append({'label':self.lang(30102),'path':plugin.url_for('CONTACTS'),'thumbnail':self.addonPath('resources/images/contacts.png')})
 			items.append({'label':self.lang(30103),'path':plugin.url_for('SEARCH_USER'),'thumbnail':self.addonPath('resources/images/search.png')})
 		items.append({'label':self.lang(30104),'path':plugin.url_for('SEARCH_PICASA'),'thumbnail':self.addonPath('resources/images/search_picasa.png')})
-		return items
+		if self.user():
+			items.append({'label':'Users ([B]{0}[/B])'.format(self.currentUser),'path':plugin.url_for('CATEGORIES_SWITCH')})
+		return plugin.finish(items, update_listing=bool(switch))
+		
+	def askUserName(self,users=None):
+		users = users or self.loadUsers()
+		import xbmcgui
+		while True:
+			name = xbmcgui.Dialog().input('Enter User Name To Add')
+			if not name: return
+			if name in users.keys():
+				xbmcgui.Dialog().ok('Sorry','Sorry, you are already using the name:','',name)
+				continue
+			break
+		return name
+
+	def switchUser(self):
+		import xbmcgui
+		users = self.loadUsers()
+		disp = ['[B]{0}[/B]'.format(k) for k in users.keys()]
+		idx = xbmcgui.Dialog().select('Users',disp + ['+Add A User','-Remove A User'])
+		if idx < 0: return
+		if idx == len(users.keys()):
+			name = self.askUserName(users)
+			if not name: return
+			self.changeCurrentUser(name)
+		elif idx == len(users.keys()) + 1:
+			deleteable = [u for u in users if u != self.currentUser]
+			idx = xbmcgui.Dialog().select('Users',deleteable)
+			if idx < 0: return
+			name = deleteable.keys()[idx]
+			self.deleteUser(name)
+		else:
+			name = users.keys()[idx]
+			self.changeCurrentUser(name)
 		
 	@plugin.route('/albums/')
 	def ALBUMS(self):
