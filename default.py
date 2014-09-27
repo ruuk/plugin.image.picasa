@@ -3,6 +3,8 @@ import os, sys
 from addon import AddonHelper
 import OAuthHelper
 
+API_LEVEL = 1
+
 SESSION = None
 from xbmcswift2 import Plugin
 from xbmcswift2.plugin import log as log__, NotFoundException
@@ -53,20 +55,11 @@ def S(uni):
 		return uni.encode("utf-8")
 	return uni
 
-def getJSON():
-	try:
-		import json
-	except:
-		import simplejson as json
-	return json
-
 class PicasaWebAPI(OAuthHelper.GoogleOAuthorizer):
 	baseURL = 'https://picasaweb.google.com'
 
-	def __init__(self,set_setting=None,get_setting=None):
+	def __init__(self):
 		self.helper = AddonHelper('plugin.image.picasa')
-		self._setSetting = set_setting
-		self._getSetting = get_setting
 		OAuthHelper.GoogleOAuthorizer.__init__(self,
 			addon_id='plugin.image.picasa',
 			client_id='905208609020-blro1d2vo7qnjo53ku3ajt6tk40i02ip.apps.googleusercontent.com',
@@ -133,14 +126,17 @@ class picasaPhotosSession(AddonHelper):
 	def setApi(self):
 		self._api = None
 		if self.getSetting('use_login',False):
-			self._api = PicasaWebOauth2API(self.setOAuthSetting,self.getOAuthSetting)
+			self._api = PicasaWebOauth2API()
+			self._api.setUser(self.currentUser)
 			if not self._api.authorized():
-				name = self.askUserName()
-				if not name: return
-				self.changeCurrentUser(name)
+				if not self._api.users():
+					if self.addUser():
+						return self._api
+					self._user = ''
+					return 
 				self._api.authorize()
 		else:
-			self._api = PicasaWebPublicAPI(self.setOAuthSetting,self.getOAuthSetting)
+			self._api = PicasaWebPublicAPI()
 		return self._api
 		
 	def api(self):
@@ -148,59 +144,58 @@ class picasaPhotosSession(AddonHelper):
 		return self.setApi()
 	
 	def checkUpgrade(self):
-		token = self.getSetting('access_token')
-		if not token: return
-		self.setSetting('access_token','')
-		self.currentUser = 'default'
-		self.setSetting('current_user','default')
-		self.saveUsers(
-			{
-				'default':
-				{
-					'access_token': token,
-					'refresh_token': self.getSetting('refresh_token'),
-					'token_expiration': self.getSetting('token_expiration','0')
+		lastAPILevel = self.getSetting('API_LEVEL',0)
+		if lastAPILevel >= API_LEVEL: return
+		
+		self.setSetting('API_LEVEL',API_LEVEL)
+
+		if lastAPILevel < 1:
+			LOG('API Level < 1: Updating token storage...')
+
+			users = None			
+			token = self.getSetting('access_token')
+			if token:
+				users = {
+					'default':{
+						'access_token': token,
+						'refresh_token': self.getSetting('refresh_token'),
+						'token_expiration': self.getSetting('token_expiration','0')
+					}
 				}
-			}
-		)
-		self.setSetting('refresh_token','')
-		self.setSetting('token_expiration','')
-		
-	def loadUsers(self):
-		json = getJSON()
-		import binascii
-		
-		jsonString = self.getSetting('users')
-		if not jsonString: return {}
-		return json.loads(binascii.unhexlify(jsonString))
+				self.currentUser = 'default'
+				self.setSetting('current_user','default')
+				self.setSetting('access_token','')
+				self.setSetting('refresh_token','')
+				self.setSetting('token_expiration','')
+			print users	
+			if not users:
+				usersString = self.getSetting('users')
+				if not usersString: return
+				self.setSetting('users','')
+				import json, binascii
+				users = json.loads(binascii.unhexlify(usersString))
 
-	def saveUsers(self,user_list):
-		json = getJSON()
-		import binascii
-		
-		self.setSetting('users',binascii.hexlify(json.dumps(user_list)))
+			replace = {}
+			ID = 0
+			for k in users.keys():
+				if k == self.currentUser:
+					self.currentUser = ID
+					self.setSetting('current_user',ID)
+				replace[ID] = users[k]
+				replace[ID]['name'] = k
+				ID += 1
+			
+			self._api = PicasaWebOauth2API()
+			self._api.setUsers(replace)
+			self._api.setUser(self.currentUser)
 
-	def changeCurrentUser(self,name):
-		self.currentUser = name
-		self.setSetting('current_user',name)
+	def changeCurrentUser(self,ID,name=None):
+		self.api().setUser(ID)
+		if name: self.api().setUserName(name)
+		self.setSetting('current_user',ID)
 
-	def deleteUser(self,name):
-		users = self.loadUsers()
-		if not name in users: return
-		del(users[name])
-		self.saveUsers(users)
-
-	def setOAuthSetting(self,key,val):
-		users = self.loadUsers()
-		if not self.currentUser in users: users[self.currentUser] = {}
-		users[self.currentUser][key] = val
-		self.saveUsers(users)
-
-	def getOAuthSetting(self,key,default=None):
-		users = self.loadUsers()
-		if not self.currentUser in users: return default
-		if not key in users[self.currentUser]: return default
-		return users[self.currentUser][key]
+	def deleteUser(self,ID):
+		self.api().deleteUser(ID)
 
 	def showImage(self):
 		url = sys.argv[2].split('=',1)[-1]
@@ -324,12 +319,13 @@ class picasaPhotosSession(AddonHelper):
 	@plugin.route('/')
 	@plugin.route('/categories/',name='CATEGORIES_SWITCH',options={'switch':True})
 	def CATEGORIES(self,switch=None,add=None):
-		self.checkUpgrade()
 		if switch:
 			self.switchUser()
+		else:
+			self.checkUpgrade()
+
 		LOG(('Version: %s' % self.version()) + (self.apiAuthorized() and ' AUTHORIZED' or ''))
 		items = []
-		print repr(self.api)
 		if self.apiAuthorized() and self.user():
 			items.append({'label':self.lang(30100),'path':plugin.url_for('ALBUMS'),'thumbnail':self.addonPath('resources/images/albums.png')})
 			items.append({'label':self.lang(30101),'path':plugin.url_for('TAGS'),'thumbnail':self.addonPath('resources/images/tags.png')})
@@ -337,40 +333,58 @@ class picasaPhotosSession(AddonHelper):
 			items.append({'label':self.lang(30103),'path':plugin.url_for('SEARCH_USER'),'thumbnail':self.addonPath('resources/images/search.png')})
 		items.append({'label':self.lang(30104),'path':plugin.url_for('SEARCH_PICASA'),'thumbnail':self.addonPath('resources/images/search_picasa.png')})
 		if self.user():
-			items.append({'label':'Users ([B]{0}[/B])'.format(self.currentUser),'path':plugin.url_for('CATEGORIES_SWITCH')})
+			items.append({'label':'Users ([B]{0}[/B])'.format(self.api().userName()),'path':plugin.url_for('CATEGORIES_SWITCH')})
 		return plugin.finish(items, update_listing=bool(switch))
 		
-	def askUserName(self,users=None):
-		users = users or self.loadUsers()
-		import xbmcgui
-		while True:
-			name = xbmcgui.Dialog().input('Enter User Name To Add')
-			if not name: return
-			if name in users.keys():
-				xbmcgui.Dialog().ok('Sorry','Sorry, you are already using the name:','',name)
-				continue
-			break
-		return name
+	def askUserName(self,msg='Enter User Name To Add'):
+		return self.xbmcgui().Dialog().input(msg)
+
+	def addUser(self):
+		IDs = [u[0] for u in self.api().users()]
+		name = self.askUserName()
+		if not name: return False
+		ID = 0
+		while str(ID) in IDs: ID+=1
+		ID = str(ID)
+		api = self.api() or self._api
+		if not api: return
+		api.setUser(ID)
+		api.setUserName(name)
+		api.authorize()
+		if not api.authorized():
+			api.deleteUser(ID)
+			api.setUser(self.currentUser)
+			return False
+		self.changeCurrentUser(ID,name)
+		return True
+
+	def renameUser(self,users=None):
+		users = users or self.api().users()
+		disp = ['[B]{0}[/B]'.format(u[1]) for u in users]
+		idx = self.xbmcgui().Dialog().select('Users',disp)
+		if idx < 0: return
+		new = self.askUserName('Enter New Name')
+		if not new: return
+		self.api().renameUser(users[idx][0],new)
 
 	def switchUser(self):
-		import xbmcgui
-		users = self.loadUsers()
-		disp = ['[B]{0}[/B]'.format(k) for k in users.keys()]
-		idx = xbmcgui.Dialog().select('Users',disp + ['+Add A User','-Remove A User'])
+		users = self.api().users()
+		others = [u for u in users if u[0] != self.currentUser]
+		disp = ['[B]{0}[/B]'.format(u[1]) for u in others]
+		idx = self.xbmcgui().Dialog().select('Users',disp + ['[COLOR FF00FF00]+[/COLOR] Add A User','[COLOR FFFFFF00]=[/COLOR] Rename A User','[COLOR FFFF0000]-[/COLOR] Remove A User'])
 		if idx < 0: return
-		if idx == len(users.keys()):
-			name = self.askUserName(users)
-			if not name: return
-			self.changeCurrentUser(name)
-		elif idx == len(users.keys()) + 1:
-			deleteable = [u for u in users if u != self.currentUser]
-			idx = xbmcgui.Dialog().select('Users',deleteable)
+		if idx == len(others):
+			self.addUser()
+		elif idx == len(others) + 1:
+			self.renameUser(users)
+		elif idx == len(others) + 2:
+			disp = ['[B]{0}[/B]'.format(u[1]) for u in others]
+			idx = self.xbmcgui().Dialog().select('Users',disp)
 			if idx < 0: return
-			name = deleteable.keys()[idx]
-			self.deleteUser(name)
+			ID = others[idx][0]
+			self.deleteUser(ID)
 		else:
-			name = users.keys()[idx]
-			self.changeCurrentUser(name)
+			self.changeCurrentUser(others[idx][0])
 		
 	@plugin.route('/albums/')
 	def ALBUMS(self):

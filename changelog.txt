@@ -1,6 +1,9 @@
 picasaPhotos Changelog
-	
-Current Version : 1.0.14
+
+*** 1.0.15 ***
+
+Moved token/user handling to the OAuth helper module
+Added the ability to change user names
 
 *** 1.0.14 ***
 
