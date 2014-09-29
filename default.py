@@ -69,17 +69,19 @@ class PicasaWebAPI(OAuthHelper.GoogleOAuthorizer):
 
 class PicasaWebOauth2API(PicasaWebAPI):
 	def GetFeed(self,url=None,*args,**kwargs):
+		token = self.getToken()
+		if not token: return {}
 		url = self.baseURL + url + '&alt=json'
 		for k,v in kwargs.items():
 			url += '&{0}={1}'.format(k.replace('_','-'),v)
-		headers = {	'Authorization': 'Bearer ' + self.getToken(),
+		headers = {	'Authorization': 'Bearer ' + token,
 						'GData-Version':'2'
 		}
 		resp = self.session.get(url,headers=headers)
 		try:
 			json = resp.json()
 		except:
-			print resp.text
+			print repr(resp.text)
 			raise
 		return json.get('feed')
 
