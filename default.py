@@ -27,11 +27,8 @@ class ClassPlugin(Plugin):
 
 			return listitems
 		raise NotFoundException, 'No matching view found for %s' % path
-								
-plugin = ClassPlugin()
 
-__plugin__ =  'picasa'
-__author__ = 'ruuk'
+plugin = ClassPlugin()
 
 def LOG(msg): print 'plugin.image.picasa: %s' % msg
 
@@ -87,7 +84,7 @@ class PicasaWebOauth2API(PicasaWebAPI):
 
 class PicasaWebPublicAPI(PicasaWebAPI):
 	publicAPIKey = 'AIzaSyCt4tydVOveutwJX8CmTbf05y5LLZVwm0A'
-	
+
 	def GetFeed(self,url=None,*args,**kwargs):
 		url = self.baseURL + url + '&alt=json'
 		for k,v in kwargs.items():
@@ -102,7 +99,7 @@ class PicasaWebPublicAPI(PicasaWebAPI):
 			print resp.text
 			raise
 		return json.get('feed')
-		
+
 class picasaPhotosSession(AddonHelper):
 	def __init__(self,show_image=False):
 		AddonHelper.__init__(self,'plugin.image.picasa')
@@ -111,20 +108,20 @@ class picasaPhotosSession(AddonHelper):
 		self.pfilter = None
 		self.currentUser = self.getSetting('current_user',None)
 		self.privacy_levels = ['public','private','protected']
-		
+
 		if self.getSetting('use_login',False):
 			self._user = 'default'
 		else:
 			self._user = self.getSetting('username')
-		
+
 		cache_path = self.dataPath('cache')
 		if not os.path.exists(cache_path): os.makedirs(cache_path)
-		
+
 		mpp = self.getSettingInt('max_per_page')
 		self.max_per_page = [10,20,30,40,50,75,100,200,500,1000][mpp]
 		self.isSlideshow = self.getParamString('plugin_slideshow_ss','false') == 'true'
 		LOG('isSlideshow: %s' % self.isSlideshow)
-	
+
 	def setApi(self):
 		self._api = None
 		if self.getSetting('use_login',False):
@@ -135,26 +132,26 @@ class picasaPhotosSession(AddonHelper):
 					if self.addUser():
 						return self._api
 					self._user = ''
-					return 
+					return
 				self._api.authorize()
 		else:
 			self._api = PicasaWebPublicAPI()
 		return self._api
-		
+
 	def api(self):
 		if self._api: return self._api
 		return self.setApi()
-	
+
 	def checkUpgrade(self):
 		lastAPILevel = self.getSetting('API_LEVEL',0)
 		if lastAPILevel >= API_LEVEL: return
-		
+
 		self.setSetting('API_LEVEL',API_LEVEL)
 
 		if lastAPILevel < 1:
 			LOG('API Level < 1: Updating token storage...')
 
-			users = None			
+			users = None
 			token = self.getSetting('access_token')
 			if token:
 				users = {
@@ -169,7 +166,7 @@ class picasaPhotosSession(AddonHelper):
 				self.setSetting('access_token','')
 				self.setSetting('refresh_token','')
 				self.setSetting('token_expiration','')
-			print users	
+			print users
 			if not users:
 				usersString = self.getSetting('users')
 				if not usersString: return
@@ -186,7 +183,7 @@ class picasaPhotosSession(AddonHelper):
 				replace[ID] = users[k]
 				replace[ID]['name'] = k
 				ID += 1
-			
+
 			self._api = PicasaWebOauth2API()
 			self._api.setUsers(replace)
 			self._api.setUser(self.currentUser)
@@ -208,7 +205,7 @@ class picasaPhotosSession(AddonHelper):
 		listitem = self.xbmcgui().ListItem(label='PicasaWeb Photo', path=image_path)
 		listitem.setInfo(type='pictures',infoLabels={"Title": 'PicasaWeb Photo'})
 		self.xbmcplugin().setResolvedUrl(handle=int(sys.argv[1]), succeeded=True, listitem=listitem)
-		
+
 	def filterAllows(self,privacy):
 		if privacy == 'only_you': privacy = 'protected'
 		if not self.pfilter: self.pfilter = self.getSettingInt('privacy_filter')
@@ -216,7 +213,7 @@ class picasaPhotosSession(AddonHelper):
 		level = self.privacy_levels.index(privacy)
 		if level <= self.pfilter: return True
 		return False
-		
+
 	def getSearchTerms(self,terms=''):
 		terms = terms or plugin.request.args.get('terms',[''])[0]
 		if terms: return terms
@@ -224,14 +221,16 @@ class picasaPhotosSession(AddonHelper):
 		keyboard.doModal()
 		if keyboard.isConfirmed(): return keyboard.getText()
 		return ''
-			
+
 	def getMapParams(self):
 		mtype = ['hybrid','satellite','terrain','roadmap'][self.getSettingInt('default_map_type')]
 		msource = ['google','yahoo','osm'][self.getSettingInt('default_map_source')]
 		mzoom = self.getSetting('map_zoom')
 		return "type=%s&source=%s&zoom=%s" % (mtype,msource,mzoom)
-		
-	def addPhotos(self,photos,source='',ID=''):		
+
+	def addPhotos(self,photos,source='',ID=''):
+		plugin.set_content('images')
+
 		total = photos['openSearch$totalResults']['$t']
 		start = photos['openSearch$startIndex']['$t']
 		per_page = photos['openSearch$itemsPerPage']['$t']
@@ -245,7 +244,7 @@ class picasaPhotosSession(AddonHelper):
 							'thumbnail':self.addonPath('resources/images/previous.png'),
 			})
 		##---------------------------------------#
-		
+
 		mparams = self.getMapParams()
 		for p in photos.get('entry',[]):
 			if not self.filterAllows(p['gphoto$access']['$t']): continue
@@ -284,27 +283,27 @@ class picasaPhotosSession(AddonHelper):
 							'info':{'type':mtype},
 							'is_playable':True
 			})
-			
+
 		## Next     Page ------------------------#
 		end_of_page =  (start + per_page) - 1
-		
+
 		if end_of_page >= total: return plugin.finish(items, update_listing=not self.initial(), view_mode=self.getViewMode('viewmode_photos'))
-		
+
 		next_ = '('+str(end_of_page)+'/'+str(total)+') '
-		
+
 		maybe_left = total - end_of_page
 		if maybe_left <= per_page:
 			next_ += self.lang(30403).replace('@REPLACE@',str(maybe_left))
 		else:
 			next_ += self.lang(30402).replace('@REPLACE@',str(per_page))
-		
+
 		next_index = start + per_page
 		items.append({	'label':next_+' ->',
 						'path':plugin.url_for(source,ID=ID,start=next_index),
 						'thumbnail':self.addonPath('resources/images/next.png'),
 		})
 		return plugin.finish(items, update_listing=not self.initial(), view_mode=self.getViewMode('viewmode_photos'))
-		
+
 	def getCachedThumbnail(self,name,url):
 		tn = self.dataPath('cache/' + self.binascii().hexlify(name) + '.jpg')
 		if not os.path.exists(tn):
@@ -314,7 +313,7 @@ class picasaPhotosSession(AddonHelper):
 				return url
 		else:
 			return tn
-		
+
 	def apiAuthorized(self):
 		return self.api() and self.api().authorized()
 
@@ -337,7 +336,7 @@ class picasaPhotosSession(AddonHelper):
 		if self.user():
 			items.append({'label':'Users ([B]{0}[/B])'.format(self.api().userName()),'path':plugin.url_for('CATEGORIES_SWITCH')})
 		return plugin.finish(items, update_listing=bool(switch))
-		
+
 	def askUserName(self,msg='Enter User Name To Add'):
 		return self.xbmcgui().Dialog().input(msg)
 
@@ -387,11 +386,11 @@ class picasaPhotosSession(AddonHelper):
 			self.deleteUser(ID)
 		else:
 			self.changeCurrentUser(others[idx][0])
-		
+
 	@plugin.route('/albums/')
 	def ALBUMS(self):
 		user = self.user()
-		
+
 		albums = self.api().GetFeed('/data/feed/api/user/%s?kind=album&thumbsize=256c' % user)
 		#tot = len(albums['entry'])
 		cm = [(self.lang(30406) % self.lang(30100),'XBMC.RunScript(plugin.image.picasa,viewmode,viewmode_albums)')]
@@ -404,11 +403,11 @@ class picasaPhotosSession(AddonHelper):
 							'thumbnail':album['media$group']['media$thumbnail'][0]['url'],
 							'context_menu':cm})
 		return plugin.finish(items,view_mode=self.getViewMode('viewmode_albums'))
-		
+
 	@plugin.route('/tags/')
 	def TAGS(self):
 		user = self.user()
-		
+
 		tags = self.api().GetFeed('/data/feed/api/user/%s?kind=tag' % user)
 		#tot = int(tags.total_results.text)
 		cm = [(self.lang(30406) % self.lang(30101),'XBMC.RunScript(plugin.image.picasa,viewmode,viewmode_tags)')]
@@ -419,9 +418,9 @@ class picasaPhotosSession(AddonHelper):
 							'thumbnail':self.addonPath('resources/images/tags.png'),
 							'context_menu':cm})
 		return plugin.finish(items, view_mode=self.getViewMode('viewmode_tags'))
-	
+
 	@plugin.route('/contacts/')
-	def CONTACTS(self):		
+	def CONTACTS(self):
 		contacts = self.api().GetFeed('/data/feed/api/user/%s/contacts?kind=user' % self.user())
 		#tot = int(contacts.total_results.text)
 		cm = [(self.lang(30406) % self.lang(30102),'XBMC.RunScript(plugin.image.picasa,viewmode,viewmode_favorites)')]
@@ -435,7 +434,7 @@ class picasaPhotosSession(AddonHelper):
 							'thumbnail':tn,
 							'context_menu':cm})
 		return plugin.finish(items, view_mode=self.getViewMode('viewmode_favorites'))
-		
+
 	@plugin.route('/search_user/')
 	@plugin.route('/search_user/<ID>',name='SEARCH_USER_PAGE')
 	def SEARCH_USER(self,ID=''):
@@ -443,7 +442,7 @@ class picasaPhotosSession(AddonHelper):
 		uri = '/data/feed/api/user/%s?kind=photo&q=%s' % (self.user(), self.urllib().quote(terms))
 		photos = self.api().GetFeed(uri,max_results=self.maxPerPage(),start_index=self.start())
 		return self.addPhotos(photos,'SEARCH_USER_PAGE',terms)
-		
+
 	@plugin.route('/search/')
 	@plugin.route('/search/<ID>',name='SEARCH_PICASA_PAGE')
 	def SEARCH_PICASA(self,ID=''):
@@ -451,11 +450,11 @@ class picasaPhotosSession(AddonHelper):
 		uri = '/data/feed/api/all?q=%s' % self.urllib().quote(terms.lower())
 		photos = self.api().GetFeed(uri,max_results=self.maxPerPage(),start_index=self.start())
 		return self.addPhotos(photos,'SEARCH_PICASA_PAGE',terms)
-	
+
 	@plugin.route('/contact/<user>')
 	def CONTACT(self,user):
 		name = U(plugin.request.args.get('name',[''])[0])
-		#fix for names ending in 
+		#fix for names ending in
 		if name[-1].lower() == 's':
 			albums = self.lang(30200).replace("@REPLACE@'s",name + "'").replace('@REPLACE@',name)
 			tags = self.lang(30201).replace("@REPLACE@'s",name + "'").replace('@REPLACE@',name)
@@ -466,7 +465,7 @@ class picasaPhotosSession(AddonHelper):
 			tags = self.lang(30201).replace('@REPLACE@',name)
 			favs = self.lang(30202).replace('@REPLACE@',name)
 			search = self.lang(30203).replace('@REPLACE@',name)
-			
+
 		cm = [(self.lang(30406) % self.lang(30408),'XBMC.RunScript(plugin.image.picasa,viewmode,viewmode_contact)')]
 		items = []
 		items.append({	'label':albums,
@@ -490,35 +489,35 @@ class picasaPhotosSession(AddonHelper):
 						'context_menu':cm
 		})
 		return plugin.finish(items, view_mode=self.getViewMode('viewmode_contact'))
-	
+
 	@plugin.route('/tag/<ID>')
 	def TAG(self,ID):
 		uri = '/data/feed/api/user/%s?kind=photo&tag=%s' % (self.user(), ID.lower())
 		photos = self.api().GetFeed(uri,max_results=self.maxPerPage(),start_index=self.start())
 		return self.addPhotos(photos,'TAG',ID)
-	
+
 	@plugin.route('/album/<ID>')
 	def ALBUM(self,ID):
 		uri = '/data/feed/api/user/%s/albumid/%s?kind=photo' % (self.user(),ID)
 		photos = self.api().GetFeed(uri,max_results=self.maxPerPage(),start_index=self.start())
 		return self.addPhotos(photos,'ALBUM',ID)
-		
+
 	def user(self):
 		return plugin.request.args.get('user',[self._user])[0]
-		
+
 	def start(self):
 		return plugin.request.args.get('start',[1])[0]
-		
+
 	def initial(self):
 		return not plugin.request.args.get('start')
-	
+
 	def getViewMode(self,setting):
 		return self.getSetting(setting) or None
-		
+
 	def maxPerPage(self):
 		if self.isSlideshow: return 1000
 		return self.max_per_page
-			
+
 def setViewDefault():
 	import xbmc #@UnresolvedImport
 	setting = sys.argv[2]
@@ -532,13 +531,13 @@ def setViewDefault():
 			pass
 	if not view_mode: return
 	AddonHelper('plugin.image.picasa').setSetting(setting,view_mode)
-	
+
 def downloadURL():
 	import urllib
 	url = urllib.unquote(sys.argv[2])
 	import saveurl
 	saveurl.SaveURL('plugin.image.picasa',url,'cache')
-	
+
 if sys.argv[1] == 'viewmode':
 	setViewDefault()
 elif sys.argv[1] == 'download':
@@ -551,4 +550,4 @@ else:
 		plugin.run()
 	except:
 		ERROR('FAIL')
-	
+

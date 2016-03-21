@@ -1,8 +1,12 @@
 picasaPhotos Changelog
 
+*** 1.0.18 ***
+
+Set content type to images when displaying images
+
 *** 1.0.17 ***
 
-Remove requests2 import 
+Remove requests2 import
 
 *** 1.0.16 ***
 
